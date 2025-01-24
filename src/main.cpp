@@ -1,56 +1,40 @@
 #include <iostream>
 #include "fft.h"
 #include "timer.h"
-#include <omp.h> // For OpenMP thread functions
 
 int main() {
-    int N;
-    std::cout << "Enter the size of the data (must be a power of two): ";
-    std::cin >> N;
-
-    if ((N <= 0) || ((N & (N - 1)) != 0)) {
-        std::cerr << "Error: Input size must be a power of two.\n";
-        return 1;
-    }
-
+    const int N = 1099511627776; // Exemplo com 1024 elementos
     ComplexVector data(N);
 
-    // Initialize with example data
+    // Inicializar com dados de exemplo
     for (int i = 0; i < N; ++i) {
         data[i] = Complex(i, 0);
     }
 
-    // Sequential FFT
+    // Sequencial
     ComplexVector seq_data = data;
     Timer t_seq;
-    try {
-        fft_sequential(seq_data);
-    } catch (const std::invalid_argument& e) {
-        std::cerr << e.what() << "\n";
-        return 1;
-    }
+    fft_sequential(seq_data);
     double time_seq = t_seq.elapsed();
-    std::cout << "Sequential FFT: " << time_seq << "s\n";
+    std::cout << "Sequencial: " << time_seq << "s\n";
 
-    
-    // Determine the number of threads dynamically
-    int num_threads =  omp_get_max_threads();
-    std::cout << "Using " << num_threads << " threads for parallel FFT.\n";
-
-    // Parallel FFT
+    // Paralela Multicore
     ComplexVector par_data = data;
     Timer t_par;
-    try {
-        fft_parallel(par_data, num_threads);
-    } catch (const std::invalid_argument& e) {
-        std::cerr << e.what() << "\n";
-        return 1;
-    }
+    fft_parallel(par_data, 4); // 4 threads
     double time_par = t_par.elapsed();
-    std::cout << "Parallel Multicore FFT (" << num_threads << " threads): " << time_par << "s\n";
+	std::cout << "Paralela Multicore: " << time_par << "s\n";
 
-    // Calculate Speedup
+    ComplexVector gpu_data = data;
+    Timer t_gpu;
+    fft_gpu(gpu_data);
+    double time_gpu = t_gpu.elapsed();
+    std::cout << "GPU: " << time_gpu << "s\n";
+
+
     std::cout << "Speedup Multicore: " << time_seq / time_par << "\n";
+    std::cout << "Speedup GPU: " << time_seq / time_gpu << "\n";
+    std::cout << "Speed GPU vs MultiCore" << time_par / time_gpu << "\n";
 
     return 0;
 }

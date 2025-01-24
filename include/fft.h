@@ -10,7 +10,6 @@ using ComplexVector = std::vector<Complex>;
 // Funções FFT
 void fft_sequential(ComplexVector& data);
 void fft_parallel(ComplexVector& data, int threads);
-
-// Função CUDA (declaração)
+void fft_gpu(ComplexVector& data);
 
 #endif // FFT_H

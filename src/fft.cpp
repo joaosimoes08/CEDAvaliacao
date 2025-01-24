@@ -1,18 +1,9 @@
 #include "fft.h"
 #include <cmath>
-#include <stdexcept>
 #include <omp.h>
-
-// Utility function to check if a number is a power of two
-bool isPowerOfTwo(int n) {
-    return (n > 0) && ((n & (n - 1)) == 0);
-}
 
 void fft_sequential(ComplexVector& data) {
     int N = data.size();
-    if (!isPowerOfTwo(N)) {
-        throw std::invalid_argument("Input size must be a power of two.");
-    }
     if (N <= 1) return;
 
     for (int step = 1; step < N; step *= 2) {
@@ -32,16 +23,13 @@ void fft_sequential(ComplexVector& data) {
 
 void fft_parallel(ComplexVector& data, int threads) {
     int N = data.size();
-    if (!isPowerOfTwo(N)) {
-        throw std::invalid_argument("Input size must be a power of two.");
-    }
     if (N <= 1) return;
 
     for (int step = 1; step < N; step *= 2) {
         int jump = step * 2;
         double theta = -M_PI / step;
 
-        #pragma omp parallel for num_threads(threads) schedule(static) private(theta)
+        #pragma omp parallel for num_threads(threads) schedule(static)
         for (int group = 0; group < step; ++group) {
             Complex w = {std::cos(group * theta), std::sin(group * theta)};
             for (int pair = group; pair < N; pair += jump) {
