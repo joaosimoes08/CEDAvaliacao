@@ -34,7 +34,7 @@ int main() {
 
     std::cout << "Speedup Multicore: " << time_seq / time_par << "\n";
     std::cout << "Speedup GPU: " << time_seq / time_gpu << "\n";
-    std::cout << "Speed GPU vs MultiCore" << time_par / time_gpu << "\n";
+    std::cout << "Speed GPU vs MultiCore: " << time_par / time_gpu << "\n";
 
     return 0;
 }
