@@ -1,10 +1,16 @@
 #ifndef FFT_H
 #define FFT_H
 
-#include "cuda_complex.h"
+#include <complex>
+#include <vector>
 
-void fft_sequential(CudaComplex* data, int N);
-void fft_parallel(CudaComplex* data, int N, int threads);
-void fft_gpu(CudaComplex* data, int N);
+using Complex = std::complex<double>;
+using ComplexVector = std::vector<Complex>;
+
+// Funções FFT
+void fft_sequential(ComplexVector& data);
+void fft_parallel(ComplexVector& data, int threads);
+
+// Função CUDA (declaração)
 
 #endif // FFT_H
