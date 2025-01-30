@@ -18,4 +18,3 @@ target_link_libraries(fft
     ${CUDA_LIBRARIES}
     ${CUDA_CUFFT_LIBRARIES}
 )
-
