@@ -3,10 +3,19 @@
 #include "fft.h"
 #include "timer.h"
 
+// Adaptive thread allocation from paper Section II-C
+int DecideThreadNum(int nRound, int nMinRoundPerCore, int maxCores) {
+    int nMax_threadNum = nRound / nMinRoundPerCore;
+    int tn = (nMax_threadNum > maxCores) ? maxCores : nMax_threadNum;
+    return (tn < 1) ? 1 : tn;
+}
+
 int main() {
+    const int MIN_WORK_PER_CORE = 10;  
+    const int CORES_PER_NODE = 28;      // 28 cores per AMD Epyc node
     // Open a file to save the results
     std::ofstream results("speedup_results.csv");
-    results << "N,Sequential Time (s),Multicore Time (s),GPU Time (s),Speedup Multicore,Speedup GPU,Speedup GPU vs Multicore\n";
+    results << "N,Sequential Time (s),Multicore Time (s),GPU Time (s),Threads Used,Speedup Multicore,Speedup GPU,Speedup GPU vs Multicore\n";
 
     // Loop through powers of 2 from 2^10 to 2^26
     for (int exp = 10; exp <= 26; ++exp) {
@@ -24,11 +33,19 @@ int main() {
         fft_sequential(seq_data);
         double time_seq = t_seq.elapsed();
 
-        // Parallel Multicore (use 8 threads as an example)
+        // -----------------------------------------------
+        // Adaptive Thread Allocation (Critical Fix)
+        // -----------------------------------------------
+        // nRound = Total butterfly groups in the last stage (N/2)
+        int nRound = N / 2;  // Fix: Use actual parallel workload size
+        int threads = DecideThreadNum(nRound, MIN_WORK_PER_CORE, CORES_PER_NODE);
+
+        // Parallel FFT with adaptive threads
         ComplexVector par_data = data;
         Timer t_par;
-        fft_parallel(par_data, 8); // 8 threads
+        fft_parallel(par_data, threads);
         double time_par = t_par.elapsed();
+        // -----------------------------------------------
 
         // GPU
         ComplexVector gpu_data = data;
@@ -43,10 +60,10 @@ int main() {
 
         // Save results to file
         results << N << "," << time_seq << "," << time_par << "," << time_gpu << ","
-                << speedup_multicore << "," << speedup_gpu << "," << speedup_gpu_vs_multicore << "\n";
+                << threads << "," << speedup_multicore << "," << speedup_gpu << ","
+                << speedup_gpu_vs_multicore << "\n";
 
-        // Print progress to console
-        std::cout << "N = " << N << " completed.\n";
+        std::cout << "N = 2^" << exp << " (" << N << "): Used " << threads << " threads\n";
     }
 
     results.close();
