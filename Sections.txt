@@ -1,0 +1,19 @@
+    Section I: INTRODUCTION
+
+        I-A: Fast Fourier Transform
+
+        I-B: The parallelism existing in the move operation
+
+    Section II: MULTI-CORE CPU ON THE PARALLEL IMPLEMENTATION OF FFT AND ITS OPTIMIZATION
+
+        II-A: OpenMP data parallel programming language
+
+        II-B: The multicore CPUs on the parallel implementation of FFT and its optimization used FOR instruction of parallel modules
+
+        II-C: set the number of threads and task scheduling
+
+    Section III: THE EXPERIMENTAL RESULTS AND DATA ANALYSIS
+
+        III-A: The several implementation methods of move operation performance comparison
+
+        III-B: The concurrent nested affect the performance of parallel 2-d DFT algorithm
