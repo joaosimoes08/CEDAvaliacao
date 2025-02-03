@@ -9,7 +9,7 @@ int DecideThreadNum(int nRound, int nMinRoundPerCore, int maxCores) {
     int tn = (nMax_threadNum > maxCores) ? maxCores : nMax_threadNum;
     return (tn < 1) ? 1 : tn;
 }
-
+// Test problem sizes from 2^10 to 2^26 (paper Section III-D)
 int main() {
     const int MIN_WORK_PER_CORE = 10;  
     const int CORES_PER_NODE = 28;      // 28 cores per AMD Epyc node
@@ -22,20 +22,17 @@ int main() {
         int N = 1 << exp; // 2^exp
         ComplexVector data(N);
 
-        // Initialize with sample data (e.g., a simple wave)
+        // Initialize with a cosine wave (paper Section III-D)
         for (int i = 0; i < N; ++i) {
             data[i] = Complex(cos(2 * M_PI * i / N), 0); // Example: cosine wave
         }
 
-        // Sequential
+        // Measure sequential FFT
         ComplexVector seq_data = data;
         Timer t_seq;
         fft_sequential(seq_data);
         double time_seq = t_seq.elapsed();
 
-        // -----------------------------------------------
-        // Adaptive Thread Allocation (Critical Fix)
-        // -----------------------------------------------
         // nRound = Total butterfly groups in the last stage (N/2)
         int nRound = N / 2;  // Fix: Use actual parallel workload size
         int threads = DecideThreadNum(nRound, MIN_WORK_PER_CORE, CORES_PER_NODE);
@@ -45,20 +42,19 @@ int main() {
         Timer t_par;
         fft_parallel(par_data, threads);
         double time_par = t_par.elapsed();
-        // -----------------------------------------------
 
-        // GPU
+        // Measure GPU FFT (paper Section III)
         ComplexVector gpu_data = data;
         Timer t_gpu;
         fft_gpu(gpu_data);
         double time_gpu = t_gpu.elapsed();
 
-        // Calculate speedups
+        // Compute speedups (paper Section III-D)
         double speedup_multicore = time_seq / time_par;
         double speedup_gpu = time_seq / time_gpu;
         double speedup_gpu_vs_multicore = time_par / time_gpu;
 
-        // Save results to file
+        // Save results for analysis
         results << N << "," << time_seq << "," << time_par << "," << time_gpu << ","
                 << threads << "," << speedup_multicore << "," << speedup_gpu << ","
                 << speedup_gpu_vs_multicore << "\n";
